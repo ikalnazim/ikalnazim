@@ -1,16 +1,51 @@
-### Hi there 👋
+#ineryjs
+Javascript API for integration with Inery-based blockchains using Inery RPC API.
+Documentation can be found in docs folder.
 
-<!--
-**ikalnazim/ikalnazim** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+#Import
+Browser
+Run command npm run build-web. Then copy folder dist-web in your project folder. Import scripts in your HTML file and use it. See Module in browser tutorial for more.
 
-Here are some ideas to get you started:
+#ES Modules
+import { Api, JsonRpc, RpcError, JsSignatureProvider } from 'ineryjs';
+CommonJS
+const { Api, JsonRpc, RpcError, JsSignatureProvider } = require('ineryjs');
+Basic Usage
+Signature Provider
+The Signature Provider holds private keys and is responsible for signing transactions.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+Using the JsSignatureProvider in the browser is not secure and should only be used for development purposes. Use a secure vault outside of the context of the webpage to ensure security when signing transactions in production
+
+const user1PrivateKey = "5JRchd5OZaHl9DAuVPEMo0gEx5nYiGc0Tn2aB75ef96FjuOiq"; // user1 private key
+const signatureProvider = new JsSignatureProvider([user1PrivateKey]);
+JsonRpc
+Open a connection to JsonRpc.
+
+const url="https://www.myurl.com";
+const rpc = new JsonRpc(url);
+API
+You may exclude these when running in a browser since most modern browsers now natively support these. If your browser does not support these (https://caniuse.com/#feat=textencoder), then you can import them as a dependency through the following deprecated npm package: https://www.npmjs.com/package/text-encoding
+
+const api = new Api({ rpc, signatureProvider });
+Sending a transaction
+transact() is used to sign and push transactions onto the blockchain with an optional configuration object parameter. Given no configuration options, transactions are expected to be unpacked with TAPOS fields (expiration, ref_block_num, ref_block_prefix) and will automatically be broadcast onto the chain.
+
+(async () => {
+  const result = await api.transact({
+    actions: [{
+      account: 'inery.token',
+      name: 'transfer',
+      authorization: [{
+        actor: 'user1',
+        permission: 'active',
+      }],
+      data: {
+        from: 'user1',
+        to: 'user2',
+        quantity: '0.0001 INR',
+        memo: ''
+      }
+    }]
+  });
+  console.log(result);
+})();
